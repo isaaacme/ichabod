@@ -1,0 +1,18 @@
+{
+  "name": "ichabod",
+  "version": "0.1.0",
+  "description": "One command to bootstrap a PocketBase CMS + minimal marketing site",
+  "type": "module",
+  "bin": {
+    "ichabod": "bin/ichabod.js"
+  },
+  "files": [
+    "bin/",
+    "lib/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["pocketbase", "cms", "headless", "cli"],
+  "license": "MIT"
+}

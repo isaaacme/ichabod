@@ -42,9 +42,36 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: .65rem 2rem; gap: 1rem;
     }
-    .lang-brand { font-weight: 700; font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: .5rem; }
-    .lang-brand span { color: var(--primary); }
-    .lang-btns { display: flex; gap: .5rem; }
+    .lang-brand { font-weight: 700; font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: .5rem; white-space: nowrap; }
+    .lang-btns { display: flex; gap: .5rem; flex-shrink: 0; }
+
+    .nav-form { display: flex; gap: 0; flex: 1; max-width: 360px; margin: 0 1.5rem; }
+    .nav-input {
+      flex: 1; min-width: 0; background: rgba(255,255,255,.06);
+      border: 1px solid var(--border); border-right: none; color: var(--text);
+      border-radius: 6px 0 0 6px; padding: .35rem .85rem; font-size: .82rem;
+      font-family: var(--font); transition: border-color .15s;
+    }
+    .nav-input:focus { outline: none; border-color: var(--primary); }
+    .nav-input::placeholder { color: var(--muted); }
+    .nav-submit {
+      background: var(--primary); color: #0c0c0f; border: none;
+      border-radius: 0 6px 6px 0; padding: .35rem .85rem;
+      font-size: .82rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+      transition: opacity .15s;
+    }
+    .nav-submit:hover { opacity: .85; }
+    .nav-submit:disabled { opacity: .5; cursor: default; }
+    .nav-msg { font-size: .78rem; white-space: nowrap; flex-shrink: 0; }
+    [lang="he"] .nav-form { flex-direction: row-reverse; margin: 0 1.5rem; }
+    [lang="he"] .nav-input { border-radius: 0 6px 6px 0; border-right: 1px solid var(--border); border-left: none; }
+    [lang="he"] .nav-submit { border-radius: 6px 0 0 6px; }
+
+    @media (max-width: 640px) {
+      .nav-form { display: none; }
+      .nav-msg  { display: none; }
+    }
+
     .lang-btn {
       background: none; border: 1px solid var(--border); color: var(--muted);
       border-radius: 6px; padding: .25rem .7rem; font-size: .8rem; font-weight: 600;
@@ -273,6 +300,14 @@
 <!-- ── Language Bar ── -->
 <header class="lang-bar">
   <div class="lang-brand"><span>◆</span> Ichabod</div>
+  <form id="nav-form" class="nav-form">
+    <input type="email" id="nav-email" class="nav-input" placeholder="your@email.com" required autocomplete="email" />
+    <button type="submit" id="nav-btn" class="nav-submit">
+      <span class="i18n-en">Notify me</span>
+      <span class="i18n-he">עדכן אותי</span>
+    </button>
+  </form>
+  <div id="nav-msg" class="nav-msg"></div>
   <div class="lang-btns">
     <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
     <button class="lang-btn"        id="btn-he" onclick="setLang('he')">עב</button>
@@ -591,7 +626,7 @@
   function updatePlaceholder() {
     const lang = document.documentElement.lang;
     const ph = lang === 'he' ? 'כתובת האימייל שלך' : 'your@email.com';
-    ['nl-email','hero-email'].forEach(id => { const el = document.getElementById(id); if (el) el.placeholder = ph; });
+    ['nl-email','hero-email','nav-email'].forEach(id => { const el = document.getElementById(id); if (el) el.placeholder = ph; });
   }
 
   async function submitEmail(email, onSuccess, onError) {
@@ -641,6 +676,7 @@
 
   formHandler('newsletter-form', 'nl-email',   'nl-btn',   'nl-error',  'nl-success');
   formHandler('hero-form',       'hero-email',  'hero-btn', 'hero-msg',   null);
+  formHandler('nav-form',        'nav-email',   'nav-btn',  'nav-msg',    null);
 </script>
 
 <script>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ichabod — Your new headless CMS</title>
+  <meta name="description" content=""/>
+  <link rel="stylesheet" href="/style.css"/>
+  <script src="/seo.js"></script>
+</head>
+<body>
+  <nav>
+    <a class="nav-brand" href="/"><span>◆</span> Ichabod</a>
+    <div class="nav-links">
+      <a href="/" style="color:var(--text)">Home</a>
+      <a href="/blog/" >Blog</a>
+      <a href="http://localhost:8092/_/" target="_blank">Admin ↗</a>
+    </div>
+  </nav>
+  <main>
+    <section class="hero">
+      <div class="hero-tag">🎉 Your CMS is live</div>
+      <h1>Headless CMS.<br/><em>No nonsense.</em></h1>
+      <p>PocketBase is running locally. Your content is editable from the admin UI and served instantly via the API.</p>
+      <div class="hero-actions">
+        <a class="btn" href="/blog/">Read the docs →</a>
+        <a class="btn btn-ghost" href="http://localhost:8092/_/" target="_blank">Open Admin UI</a>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Instant API</h3>
+          <p>Every collection gets a REST API automatically. No configuration needed.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗄️</div>
+          <h3>SQLite-backed</h3>
+          <p>Zero-dependency database. Back it up with a single file copy.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Auth built-in</h3>
+          <p>User collections, rules, and JWT auth are part of PocketBase by default.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>LLM-friendly</h3>
+          <p>Plain HTML + vanilla JS. Paste any file into an AI and extend instantly.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <span>Powered by <a href="https://pocketbase.io" target="_blank">PocketBase</a> + Ichabod</span>
+    <span><a href="http://localhost:8092/_/" target="_blank">Admin UI</a> · <a href="http://localhost:8092/api/collections/posts/records" target="_blank">API</a></span>
+  </footer>
+</body>
+</html>

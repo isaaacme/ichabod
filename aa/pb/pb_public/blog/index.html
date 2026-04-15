@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blog — Ichabod</title>
+  <meta name="description" content=""/>
+  <link rel="stylesheet" href="/style.css"/>
+  <script src="/seo.js"></script>
+</head>
+<body>
+  <nav>
+    <a class="nav-brand" href="/"><span>◆</span> Ichabod</a>
+    <div class="nav-links">
+      <a href="/" >Home</a>
+      <a href="/blog/" style="color:var(--text)">Blog</a>
+      <a href="http://localhost:8092/_/" target="_blank">Admin ↗</a>
+    </div>
+  </nav>
+  <main>
+    <div class="page-header">
+      <h1>Blog</h1>
+      <p>Manage posts in the <a href="http://localhost:8092/_/" target="_blank">PocketBase admin UI</a>.</p>
+    </div>
+    <div class="posts-list" id="posts">
+      <div class="state"><div class="state-icon">⏳</div>Loading posts…</div>
+    </div>
+  </main>
+  <footer>
+    <span>Powered by <a href="https://pocketbase.io" target="_blank">PocketBase</a> + Ichabod</span>
+    <span><a href="http://localhost:8092/_/" target="_blank">Admin UI</a> · <a href="http://localhost:8092/api/collections/posts/records" target="_blank">API</a></span>
+  </footer>
+
+  <script>
+    const PB = 'http://localhost:8092';
+
+    async function loadPosts() {
+      const container = document.getElementById('posts');
+      try {
+        const res = await fetch(PB + '/api/collections/posts/records?sort=-published_date&perPage=50');
+        const data = await res.json();
+        if (!data.items || data.items.length === 0) {
+          container.innerHTML = '<div class="state"><div class="state-icon">📭</div>No posts yet. <a href="' + PB + '/_/" target="_blank">Add one in the admin UI.</a></div>';
+          return;
+        }
+        container.innerHTML = data.items.map(post => {
+          const date = post.published_date ? new Date(post.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+          return `
+            <div class="post-card" onclick="location.href='/post.html?id=${post.id}'">
+              ${date ? '<div class="post-date">' + date + '</div>' : ''}
+              <h2><a href="/post.html?id=${post.id}">${post.title}</a></h2>
+              ${post.excerpt ? '<p>' + post.excerpt + '</p>' : ''}
+              <span class="read-more">Read more →</span>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        container.innerHTML = '<div class="state"><div class="state-icon">⚠️</div>Could not load posts. Is PocketBase running?</div>';
+      }
+    }
+
+    loadPosts();
+  </script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ichabod Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css"/>
+  <script src="/admin/app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+</head>
+<body x-data="app()" x-init="init()" x-cloak>
+
+  <!-- ── Login ── -->
+  <div x-show="!$store.auth.isLoggedIn" class="login-wrap">
+    <form @submit.prevent="login()" class="login-card">
+      <div class="login-logo"><span>◆</span> Ichabod Admin</div>
+      <div x-show="loginError" class="alert" x-text="loginError"></div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="input" x-model="loginEmail" required autofocus/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" class="input" x-model="loginPassword" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" :disabled="loginLoading">
+        <span x-show="!loginLoading">Sign in</span>
+        <span x-show="loginLoading">…</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- ── App shell ── -->
+  <div x-show="$store.auth.isLoggedIn" class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">◆</span>
+        <div>
+          <div>Ichabod</div>
+          <div class="brand-sub">Admin</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section" x-text="$store.i18n.t('nav.collections')">Collections</div>
+        <template x-for="col in $store.schema.collections" :key="col.name">
+          <a class="nav-item"
+             :class="{ active: view === 'list' && routeParams.collection === col.name }"
+             @click.prevent="go('/collection/' + col.name)"
+             href="#" x-text="col.name"></a>
+        </template>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a class="nav-item"
+           :class="{ active: view === 'settings' }"
+           @click.prevent="go('/settings')" href="#">
+          ⚙&nbsp;<span x-text="$store.i18n.t('nav.settings')">Settings</span>
+        </a>
+        <button class="btn-logout" @click="$store.auth.logout()">
+          ⏻&nbsp;<span x-text="$store.i18n.t('nav.logout')">Logout</span>
+        </button>
+        <div class="locale-select">
+          <select @change="switchLocale($event.target.value)"
+                  :value="$store.i18n.locale">
+            <option value="en">EN</option>
+            <option value="fr">FR</option>
+            <option value="es">ES</option>
+          </select>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main content ── -->
+    <div class="content">
+
+      <!-- Dashboard -->
+      <div x-show="view === 'dashboard'">
+        <div class="page-header">
+          <h1 x-text="$store.i18n.t('page.dashboard')">Dashboard</h1>
+        </div>
+        <div class="collection-grid">
+          <template x-for="col in $store.schema.collections" :key="col.name">
+            <div class="collection-card" @click="go('/collection/' + col.name)">
+              <div class="collection-icon">⚡</div>
+              <h3 x-text="col.name"></h3>
+              <div class="collection-count">
+                <span x-text="counts[col.name] ?? '…'"></span>
+                &nbsp;<span x-text="$store.i18n.t('label.records')">records</span>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- List view -->
+      <div x-show="view === 'list'">
+        <div class="page-header">
+          <h1 x-text="routeParams.collection"></h1>
+          <button class="btn btn-primary"
+                  @click="go('/collection/' + routeParams.collection + '/new')"
+                  x-text="$store.i18n.t('action.new')">+ New</button>
+        </div>
+        <div class="toolbar">
+          <input type="search" class="search-input"
+                 x-model="listSearch"
+                 @input.debounce.350ms="listSearch_()"
+                 :placeholder="$store.i18n.t('action.search')"/>
+        </div>
+        <div x-show="listLoading" class="loading" x-text="$store.i18n.t('label.loading')">Loading…</div>
+        <div x-show="!listLoading" class="table-wrap">
+          <div x-show="!listRecords.length" class="empty" x-text="$store.i18n.t('label.empty')">No records.</div>
+          <table x-show="listRecords.length" class="table">
+            <thead>
+              <tr>
+                <template x-for="f in listFields" :key="f.name">
+                  <th x-text="f.name"></th>
+                </template>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="rec in listRecords" :key="rec.id">
+                <tr>
+                  <template x-for="f in listFields" :key="f.name">
+                    <td x-text="formatCell(rec[f.name], f.type)"></td>
+                  </template>
+                  <td class="row-actions">
+                    <button class="btn btn-sm"
+                            @click="go('/collection/' + routeParams.collection + '/' + rec.id)"
+                            x-text="$store.i18n.t('action.edit')">Edit</button>
+                    <button class="btn btn-sm btn-danger"
+                            @click="deleteRecord(rec.id)"
+                            x-text="$store.i18n.t('action.delete')">Delete</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="pagination" x-show="listTotalPages > 1">
+            <button class="btn btn-sm" @click="listPrev()" :disabled="listPage <= 1">←</button>
+            <span>
+              <span x-text="$store.i18n.t('label.page')">Page</span>
+              <span x-text="listPage"></span>
+              <span x-text="$store.i18n.t('label.of')">of</span>
+              <span x-text="listTotalPages"></span>
+            </span>
+            <button class="btn btn-sm" @click="listNext()" :disabled="listPage >= listTotalPages">→</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit / Create -->
+      <div x-show="view === 'edit'">
+        <div class="page-header">
+          <div class="breadcrumb">
+            <a @click.prevent="go('/collection/' + routeParams.collection)" href="#"
+               x-text="routeParams.collection"></a>
+            <span>/</span>
+            <span x-text="editIsNew ? $store.i18n.t('action.new') : $store.i18n.t('action.edit')"></span>
+          </div>
+        </div>
+
+        <div x-show="editLoading" class="loading" x-text="$store.i18n.t('label.loading')">Loading…</div>
+
+        <form x-show="!editLoading" @submit.prevent="saveRecord()" class="edit-form">
+
+          <!-- Content locale tabs -->
+          <div x-show="contentLocales.length > 1" class="locale-tabs">
+            <template x-for="loc in contentLocales" :key="loc">
+              <button type="button"
+                      :class="{ active: editLocale === loc }"
+                      @click="editLocale = loc"
+                      x-text="loc.toUpperCase()"></button>
+            </template>
+          </div>
+
+          <template x-for="field in editFields" :key="field.name">
+            <div class="form-group" x-show="shouldShowField(field)">
+              <label :for="'f-' + field.name">
+                <span x-text="fieldLabel(field)"></span>
+                <span x-show="field.required" class="required">*</span>
+              </label>
+
+              <!-- text / email / url -->
+              <template x-if="field.type === 'text' || field.type === 'email' || field.type === 'url'">
+                <input :type="field.type === 'email' ? 'email' : field.type === 'url' ? 'url' : 'text'"
+                       class="input" :id="'f-' + field.name" x-model="formData[field.name]"/>
+              </template>
+
+              <!-- number -->
+              <template x-if="field.type === 'number'">
+                <input type="number" class="input" :id="'f-' + field.name" x-model.number="formData[field.name]"/>
+              </template>
+
+              <!-- date -->
+              <template x-if="field.type === 'date'">
+                <input type="datetime-local" class="input" :id="'f-' + field.name" x-model="formData[field.name]"/>
+              </template>
+
+              <!-- bool -->
+              <template x-if="field.type === 'bool'">
+                <label class="toggle">
+                  <input type="checkbox" x-model="formData[field.name]"/>
+                  <span class="toggle-slider"></span>
+                </label>
+              </template>
+
+              <!-- select -->
+              <template x-if="field.type === 'select'">
+                <select class="input" :id="'f-' + field.name" x-model="formData[field.name]">
+                  <option value=""></option>
+                  <template x-for="opt in (field.values || [])" :key="opt">
+                    <option :value="opt" x-text="opt"></option>
+                  </template>
+                </select>
+              </template>
+
+              <!-- editor -->
+              <template x-if="field.type === 'editor'">
+                <div class="editor-wrap">
+                  <div class="editor-toolbar">
+                    <button type="button" @click="execCmd('bold')"><b>B</b></button>
+                    <button type="button" @click="execCmd('italic')"><i>I</i></button>
+                    <button type="button" @click="execCmd('underline')"><u>U</u></button>
+                    <button type="button" @click="insertLink()">🔗</button>
+                    <button type="button" @click="execCmd('insertUnorderedList')">•</button>
+                    <button type="button" @click="execCmd('insertOrderedList')">1.</button>
+                  </div>
+                  <div class="editor-content" contenteditable="true"
+                       :id="'editor-' + field.name"
+                       @blur="formData[field.name] = $event.target.innerHTML"
+                       @input="formData[field.name] = $event.target.innerHTML"></div>
+                </div>
+              </template>
+
+              <!-- file -->
+              <template x-if="field.type === 'file'">
+                <div class="file-wrap">
+                  <div x-show="formData[field.name] && typeof formData[field.name] === 'string'" class="current-file">
+                    Current: <span x-text="formData[field.name]"></span>
+                  </div>
+                  <input type="file" class="input" :id="'f-' + field.name"
+                         @change="formData[field.name] = $event.target.files[0]"/>
+                </div>
+              </template>
+
+              <!-- json -->
+              <template x-if="field.type === 'json'">
+                <textarea class="input textarea" :id="'f-' + field.name"
+                          x-model="formData[field.name]" rows="5"></textarea>
+              </template>
+
+              <!-- relation -->
+              <template x-if="field.type === 'relation'">
+                <div x-init="initRelField(field)">
+                  <select class="input" :id="'f-' + field.name" x-model="formData[field.name]">
+                    <option value=""></option>
+                    <template x-for="opt in (_relOptions[field.name] || [])" :key="opt.id">
+                      <option :value="opt.id" x-text="opt.label"></option>
+                    </template>
+                  </select>
+                </div>
+              </template>
+
+              <div x-show="editErrors[field.name]" class="field-error"
+                   x-text="editErrors[field.name]?.message || editErrors[field.name]"></div>
+            </div>
+          </template>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" :disabled="editSaving">
+              <span x-show="!editSaving" x-text="$store.i18n.t('action.save')">Save</span>
+              <span x-show="editSaving">Saving…</span>
+            </button>
+            <button type="button" class="btn"
+                    @click="go('/collection/' + routeParams.collection)"
+                    x-text="$store.i18n.t('action.cancel')">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Settings -->
+      <div x-show="view === 'settings'">
+        <div class="page-header">
+          <h1 x-text="$store.i18n.t('page.settings')">Settings</h1>
+        </div>
+
+        <div class="settings-tabs">
+          <button :class="{ active: settingsTab === 'theme' }" @click="settingsTab = 'theme'"
+                  x-text="$store.i18n.t('settings.theme')">Theme</button>
+          <button :class="{ active: settingsTab === 'i18n' }" @click="settingsTab = 'i18n'"
+                  x-text="$store.i18n.t('settings.i18n')">i18n</button>
+          <button :class="{ active: settingsTab === 'fields' }" @click="settingsTab = 'fields'"
+                  x-text="$store.i18n.t('settings.fields')">Fields</button>
+        </div>
+
+        <!-- Theme tab -->
+        <div x-show="settingsTab === 'theme'" class="settings-section">
+          <template x-for="entry in Object.entries($store.theme.tokens)" :key="entry[0]">
+            <div class="form-group theme-row">
+              <label x-text="entry[0].replace('--','')"></label>
+              <div class="theme-input-row">
+                <input x-show="entry[1].startsWith('#')" type="color"
+                       :value="entry[1]"
+                       @input="$store.theme.tokens[entry[0]] = $event.target.value; $store.theme.apply()"/>
+                <input type="text" class="input input-sm"
+                       :value="entry[1]"
+                       @change="$store.theme.tokens[entry[0]] = $event.target.value; $store.theme.apply()"/>
+              </div>
+            </div>
+          </template>
+          <div class="form-actions">
+            <button class="btn btn-primary" @click="$store.theme.save()"
+                    x-text="$store.i18n.t('action.save')">Save theme</button>
+            <button class="btn" @click="$store.theme.reset()"
+                    x-text="$store.i18n.t('action.reset')">Reset</button>
+          </div>
+        </div>
+
+        <!-- i18n tab -->
+        <div x-show="settingsTab === 'i18n'" class="settings-section">
+          <div class="form-group">
+            <label x-text="$store.i18n.t('settings.ui_lang')">UI Language</label>
+            <select class="input" :value="$store.i18n.locale" @change="switchLocale($event.target.value)">
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label x-text="$store.i18n.t('settings.content_locales')">Content locales</label>
+            <p class="hint">Fields named <code>title_en</code>, <code>title_fr</code> will appear as language tabs in the editor.</p>
+            <div class="locale-list">
+              <template x-for="(loc, idx) in contentLocales" :key="idx">
+                <div class="locale-row">
+                  <input type="text" class="input input-sm" x-model="contentLocales[idx]" placeholder="en"/>
+                  <button type="button" class="btn btn-sm btn-danger" @click="contentLocales.splice(idx, 1)">✕</button>
+                </div>
+              </template>
+              <button type="button" class="btn btn-sm" @click="contentLocales.push('')">+ Add locale</button>
+            </div>
+            <button class="btn btn-primary" @click="saveContentLocales()"
+                    x-text="$store.i18n.t('action.save')">Save</button>
+          </div>
+        </div>
+
+        <!-- Fields tab -->
+        <div x-show="settingsTab === 'fields'" class="settings-section">
+          <div class="form-group">
+            <label>Collection</label>
+            <select class="input" x-model="fieldsCollection">
+              <option value="">Select…</option>
+              <template x-for="col in $store.schema.collections" :key="col.name">
+                <option :value="col.name" x-text="col.name"></option>
+              </template>
+            </select>
+          </div>
+          <div x-show="fieldsCollection">
+            <template x-for="field in getCollectionFields(fieldsCollection)" :key="field.name">
+              <div class="field-config-row">
+                <span class="field-name" x-text="field.name"></span>
+                <label>
+                  <input type="checkbox"
+                         :checked="!isFieldHidden(fieldsCollection, field.name)"
+                         @change="toggleField(fieldsCollection, field.name, !$event.target.checked)"/>
+                  Visible
+                </label>
+                <label>Label
+                  <input type="text" class="input input-sm"
+                         :placeholder="field.name"
+                         :value="getFieldLabel(fieldsCollection, field.name)"
+                         @change="setFieldLabel(fieldsCollection, field.name, $event.target.value)"/>
+                </label>
+              </div>
+            </template>
+            <div class="form-actions" style="margin-top:.75rem">
+              <button class="btn btn-primary" @click="saveFieldConfig()"
+                      x-text="$store.i18n.t('action.save')">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /app -->
+
+  <!-- Toasts -->
+  <div class="toast-container" aria-live="polite">
+    <template x-for="t in toasts" :key="t.id">
+      <div class="toast" :class="'toast-' + t.type" x-text="t.message" x-transition></div>
+    </template>
+  </div>
+
+</body>
+</html>

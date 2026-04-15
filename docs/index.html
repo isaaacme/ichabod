@@ -176,26 +176,44 @@
       background: var(--surface);
     }
     .newsletter-form {
-      display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap;
-      margin-top: 2rem;
+      display: flex; gap: 0; justify-content: center; flex-wrap: nowrap;
+      margin-top: 2rem; max-width: 440px; margin-left: auto; margin-right: auto;
     }
     .newsletter-input {
-      background: var(--card); border: 1px solid var(--border); color: var(--text);
-      border-radius: var(--radius); padding: .7rem 1.1rem; font-size: .95rem;
-      font-family: var(--font); width: 280px; max-width: 100%;
-      transition: border-color .15s;
+      background: var(--card); border: 1px solid var(--border); border-right: none;
+      color: var(--text); border-radius: var(--radius) 0 0 var(--radius);
+      padding: .7rem 1.1rem; font-size: .95rem; font-family: var(--font);
+      flex: 1; min-width: 0; transition: border-color .15s;
     }
     .newsletter-input:focus { outline: none; border-color: var(--primary); }
-    .newsletter-input[aria-invalid="true"] { border-color: var(--danger); }
-    .fs-error-msg { color: var(--danger); font-size: .82rem; margin-top: .5rem; min-height: 1.2em; }
-    .fs-success-msg {
-      display: none; margin-top: 1.5rem;
-      background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3);
-      color: var(--accent); border-radius: var(--radius); padding: .75rem 1.25rem;
-      font-size: .95rem;
+    .newsletter-input:focus + .btn { border-color: var(--primary); }
+    .newsletter-form .btn {
+      border-radius: 0 var(--radius) var(--radius) 0; white-space: nowrap;
+      padding: .7rem 1.25rem; font-size: .95rem;
     }
+    .fs-error-msg { color: var(--danger); font-size: .82rem; margin-top: .5rem; min-height: 1.2em; text-align: center; }
     [lang="he"] .newsletter-form { direction: rtl; }
-    [lang="he"] .newsletter-input { text-align: right; }
+    [lang="he"] .newsletter-input { border-radius: 0 var(--radius) var(--radius) 0; border-right: 1px solid var(--border); border-left: none; }
+    [lang="he"] .newsletter-form .btn { border-radius: var(--radius) 0 0 var(--radius); }
+
+    /* ── Hero inline form ── */
+    .hero-form {
+      display: flex; gap: 0; justify-content: center; flex-wrap: nowrap;
+      max-width: 400px; margin: 2rem auto 0;
+    }
+    .hero-form-input {
+      background: rgba(255,255,255,.06); border: 1px solid var(--border); border-right: none;
+      color: var(--text); border-radius: var(--radius) 0 0 var(--radius);
+      padding: .65rem 1rem; font-size: .9rem; font-family: var(--font);
+      flex: 1; min-width: 0; transition: border-color .15s;
+    }
+    .hero-form-input:focus { outline: none; border-color: var(--primary); }
+    .hero-form-input::placeholder { color: var(--muted); }
+    .hero-form .btn { border-radius: 0 var(--radius) var(--radius) 0; padding: .65rem 1.1rem; font-size: .9rem; }
+    .hero-form-msg { font-size: .82rem; margin-top: .6rem; min-height: 1.1em; text-align: center; }
+    [lang="he"] .hero-form { direction: rtl; }
+    [lang="he"] .hero-form-input { border-radius: 0 var(--radius) var(--radius) 0; border-right: 1px solid var(--border); border-left: none; }
+    [lang="he"] .hero-form .btn { border-radius: var(--radius) 0 0 var(--radius); }
 
     /* ── CTA ── */
     .cta-section {
@@ -288,6 +306,16 @@
         <span class="i18n-he">איך זה עובד ←</span>
       </a>
     </div>
+
+    <!-- Hero email form -->
+    <form id="hero-form" class="hero-form" aria-label="Subscribe">
+      <input type="email" id="hero-email" class="hero-form-input" placeholder="your@email.com" required autocomplete="email" />
+      <button type="submit" id="hero-btn" class="btn btn-primary">
+        <span class="i18n-en">Notify me</span>
+        <span class="i18n-he">עדכן אותי</span>
+      </button>
+    </form>
+    <div id="hero-msg" class="hero-form-msg"></div>
 
     <div class="terminal-wrap">
       <div class="terminal">
@@ -501,23 +529,13 @@
       </div>
 
       <form id="newsletter-form" class="newsletter-form">
-        <div>
-          <input
-            type="email"
-            name="email"
-            id="nl-email"
-            class="newsletter-input"
-            placeholder="your@email.com"
-            required
-            autocomplete="email"
-          />
-          <div id="nl-error" class="fs-error-msg"></div>
-        </div>
+        <input type="email" name="email" id="nl-email" class="newsletter-input" placeholder="your@email.com" required autocomplete="email" />
         <button type="submit" id="nl-btn" class="btn btn-primary">
           <span class="i18n-en">Notify me</span>
           <span class="i18n-he">עדכן אותי</span>
         </button>
       </form>
+      <div id="nl-error" class="fs-error-msg"></div>
     </div>
   </section>
 
@@ -572,46 +590,57 @@
 <script>
   function updatePlaceholder() {
     const lang = document.documentElement.lang;
-    const el = document.getElementById('nl-email');
-    if (el) el.placeholder = lang === 'he' ? 'כתובת האימייל שלך' : 'your@email.com';
+    const ph = lang === 'he' ? 'כתובת האימייל שלך' : 'your@email.com';
+    ['nl-email','hero-email'].forEach(id => { const el = document.getElementById(id); if (el) el.placeholder = ph; });
   }
 
-  document.getElementById('newsletter-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn   = document.getElementById('nl-btn');
-    const err   = document.getElementById('nl-error');
-    const input = document.getElementById('nl-email');
-    const lang  = document.documentElement.lang;
-
-    err.textContent = '';
-    input.style.borderColor = '';
-    btn.disabled = true;
-    btn.style.opacity = '.6';
-
-    try {
-      const res  = await fetch('https://formspree.io/f/xyklzqev', {
-        method:  'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email: input.value })
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        document.getElementById('newsletter-form').style.display = 'none';
-        document.getElementById('nl-success').style.display = 'block';
-      } else {
-        const msg = data.errors ? data.errors.map(e => e.message).join(', ') : (lang === 'he' ? 'משהו השתבש שגוי. נסה שוב.' : 'Something went wrong. Please try again.');
-        err.textContent = msg;
-        input.style.borderColor = 'var(--danger)';
-      }
-    } catch (_) {
-      err.textContent = lang === 'he' ? 'שגיאת רשת. נסה שוב.' : 'Network error. Please try again.';
-      input.style.borderColor = 'var(--danger)';
-    } finally {
-      btn.disabled = false;
-      btn.style.opacity = '';
+  async function submitEmail(email, onSuccess, onError) {
+    const res  = await fetch('https://formspree.io/f/xyklzqev', {
+      method:  'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok) { onSuccess(); } else {
+      const lang = document.documentElement.lang;
+      onError(data.errors ? data.errors.map(e => e.message).join(', ') : (lang === 'he' ? 'משהו השתבש. נסה שוב.' : 'Something went wrong. Try again.'));
     }
-  });
+  }
+
+  function formHandler(formId, inputId, btnId, errId, successId) {
+    document.getElementById(formId).addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const input = document.getElementById(inputId);
+      const btn   = document.getElementById(btnId);
+      const err   = document.getElementById(errId);
+      const lang  = document.documentElement.lang;
+      err.textContent = ''; input.style.borderColor = '';
+      btn.disabled = true; btn.style.opacity = '.6';
+      try {
+        await submitEmail(input.value,
+          () => {
+            if (successId) {
+              document.getElementById(formId).style.display = 'none';
+              document.getElementById(successId).style.display = 'block';
+            } else {
+              err.style.color = 'var(--accent)';
+              err.textContent = lang === 'he' ? '🎉 נרשמת!' : '🎉 You\'re in!';
+              input.value = ''; input.disabled = true; btn.disabled = true;
+            }
+          },
+          (msg) => { err.textContent = msg; input.style.borderColor = 'var(--danger)'; }
+        );
+      } catch (_) {
+        err.textContent = lang === 'he' ? 'שגיאת רשת. נסה שוב.' : 'Network error. Try again.';
+        input.style.borderColor = 'var(--danger)';
+      } finally {
+        btn.disabled = false; btn.style.opacity = '';
+      }
+    });
+  }
+
+  formHandler('newsletter-form', 'nl-email',   'nl-btn',   'nl-error',  'nl-success');
+  formHandler('hero-form',       'hero-email',  'hero-btn', 'hero-msg',   null);
 </script>
 
 <script>

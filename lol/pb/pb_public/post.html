@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Post — Ichabod</title>
+  <meta name="description" content=""/>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+  <nav>
+    <a class="nav-brand" href="/"><span>◆</span> Ichabod</a>
+    <div class="nav-links">
+      <a href="/" >Home</a>
+      <a href="/blog/" style="color:var(--text)">Blog</a>
+      <a href="http://localhost:8090/_/" target="_blank">Admin ↗</a>
+    </div>
+  </nav>
+  <main>
+    <div class="post-single" id="post-wrap">
+      <div class="state"><div class="state-icon">⏳</div>Loading post…</div>
+    </div>
+  </main>
+  <footer>
+    <span>Powered by <a href="https://pocketbase.io" target="_blank">PocketBase</a> + Ichabod</span>
+    <span><a href="http://localhost:8090/_/" target="_blank">Admin UI</a> · <a href="http://localhost:8090/api/collections/posts/records" target="_blank">API</a></span>
+  </footer>
+
+  <script>
+    const PB = 'http://localhost:8090';
+
+    async function loadPost() {
+      const wrap = document.getElementById('post-wrap');
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      if (!id) { wrap.innerHTML = '<div class="state"><div class="state-icon">🔍</div>No post ID provided.</div>'; return; }
+
+      try {
+        const res = await fetch(PB + '/api/collections/posts/records/' + id);
+        if (!res.ok) throw new Error('Not found');
+        const post = await res.json();
+
+        const date = post.published_date
+          ? new Date(post.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : '';
+
+        const seoTitle = post.seo_title || post.title;
+        document.title = seoTitle + ' — Ichabod';
+
+        const descEl = document.querySelector('meta[name="description"]');
+        if (descEl) descEl.content = post.seo_description || post.excerpt || '';
+
+        if (post.canonical_url) {
+          let link = document.querySelector('link[rel="canonical"]');
+          if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link); }
+          link.href = post.canonical_url;
+        }
+        if (post.no_index) {
+          let rm = document.querySelector('meta[name="robots"]');
+          if (!rm) { rm = document.createElement('meta'); rm.name = 'robots'; document.head.appendChild(rm); }
+          rm.content = 'noindex,nofollow';
+        }
+
+        wrap.innerHTML = `
+          <a class="back-link" href="/blog/">← Back to blog</a>
+          <div class="post-meta">
+            ${date ? '<span>' + date + '</span>' : ''}
+          </div>
+          <h1>${post.title}</h1>
+          <div class="post-body">${post.body || ''}</div>
+        `;
+      } catch (e) {
+        wrap.innerHTML = '<div class="state"><div class="state-icon">⚠️</div>Post not found.</div>';
+      }
+    }
+
+    loadPost();
+  </script>
+</body>
+</html>

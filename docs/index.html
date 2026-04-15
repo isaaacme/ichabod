@@ -268,24 +268,30 @@
       font-family: var(--heb);
     }
     [lang="he"] h1 { font-weight: 900; letter-spacing: 0; }
-    [lang="he"] { direction: rtl; text-align: right; }
+    [lang="he"] { direction: rtl; }
     [lang="he"] .lang-bar { flex-direction: row-reverse; }
-    [lang="he"] .terminal-wrap { direction: ltr; }
-    [lang="he"] .step-row { flex-direction: row-reverse; }
+    [lang="he"] .terminal-wrap { direction: ltr; text-align: left; }
+    [lang="he"] .step-row { flex-direction: row; }
+    [lang="he"] .step-num { margin-right: 0; margin-left: 1.5rem; }
     [lang="he"] .step-row:not(:last-child) .step-line { left: auto; right: 19px; }
-    [lang="he"] .features-grid { direction: rtl; }
+    [lang="he"] .features-grid { direction: ltr; }
+    [lang="he"] .hero, [lang="he"] .cta-section, [lang="he"] .newsletter-section { text-align: center; }
+    [lang="he"] .hero-badge, [lang="he"] .hero-actions { direction: rtl; }
     [lang="he"] footer { flex-direction: row-reverse; }
+    [lang="he"] .compare-table { direction: ltr; }
+    [lang="he"] .compare-table th:first-child, [lang="he"] .compare-table td:first-child { text-align: right; }
+    [lang="he"] .container { direction: rtl; }
+    [lang="he"] .section-desc { margin-left: auto; margin-right: auto; }
 
     /* ── i18n visibility ── */
     .i18n-en, .i18n-he { display: none; }
-    [lang="en"] .i18n-en { display: contents; }
-    [lang="he"] .i18n-he { display: contents; }
-    span.i18n-en, span.i18n-he { display: none; }
-    [lang="en"] span.i18n-en { display: inline; }
-    [lang="he"] span.i18n-he { display: inline; }
-    div.i18n-en, div.i18n-he { display: none; }
-    [lang="en"] div.i18n-en { display: block; }
-    [lang="he"] div.i18n-he { display: block; }
+    [lang="en"] .i18n-en { display: inline; }
+    [lang="he"] .i18n-he { display: inline; }
+    [lang="en"] h1 .i18n-en, [lang="en"] h2 .i18n-en, [lang="en"] h3 .i18n-en, [lang="en"] p .i18n-en,
+    [lang="he"] h1 .i18n-he, [lang="he"] h2 .i18n-he, [lang="he"] h3 .i18n-he, [lang="he"] p .i18n-he { display: inline; }
+    h1 .i18n-en, h1 .i18n-he, h2 .i18n-en, h2 .i18n-he, h3 .i18n-en, h3 .i18n-he { display: none; }
+    [lang="en"] h1 .i18n-en, [lang="en"] h2 .i18n-en, [lang="en"] h3 .i18n-en { display: inline; }
+    [lang="he"] h1 .i18n-he, [lang="he"] h2 .i18n-he, [lang="he"] h3 .i18n-he { display: inline; }
 
     @media (max-width: 640px) {
       .lang-bar { padding: .5rem 1rem; }

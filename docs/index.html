@@ -168,6 +168,35 @@
     .compare-table .no  { color: var(--muted); }
     .compare-table .col-ich { color: var(--primary); font-weight: 700; }
 
+    /* ── Newsletter ── */
+    .newsletter-section {
+      border-top: 1px solid var(--border);
+      padding: 5rem 1.5rem;
+      text-align: center;
+      background: var(--surface);
+    }
+    .newsletter-form {
+      display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+    .newsletter-input {
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      border-radius: var(--radius); padding: .7rem 1.1rem; font-size: .95rem;
+      font-family: var(--font); width: 280px; max-width: 100%;
+      transition: border-color .15s;
+    }
+    .newsletter-input:focus { outline: none; border-color: var(--primary); }
+    .newsletter-input[aria-invalid="true"] { border-color: var(--danger); }
+    .fs-error-msg { color: var(--danger); font-size: .82rem; margin-top: .5rem; min-height: 1.2em; }
+    .fs-success-msg {
+      display: none; margin-top: 1.5rem;
+      background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3);
+      color: var(--accent); border-radius: var(--radius); padding: .75rem 1.25rem;
+      font-size: .95rem;
+    }
+    [lang="he"] .newsletter-form { direction: rtl; }
+    [lang="he"] .newsletter-input { text-align: right; }
+
     /* ── CTA ── */
     .cta-section {
       background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(167,139,250,.08) 0%, transparent 70%);
@@ -450,6 +479,49 @@
     </div>
   </section>
 
+  <!-- ── Newsletter ── -->
+  <section class="newsletter-section">
+    <div class="container">
+      <div class="section-label">
+        <span class="i18n-en">Stay in the loop</span>
+        <span class="i18n-he">הישאר מעודכן</span>
+      </div>
+      <h2>
+        <span class="i18n-en">Get updates.</span>
+        <span class="i18n-he">קבל עדכונים.</span>
+      </h2>
+      <p class="section-desc" style="margin:0 auto 0;max-width:460px">
+        <span class="i18n-en">New releases, guides, and tips — no spam, unsubscribe any time.</span>
+        <span class="i18n-he">גרסאות חדשות, מדריכים וטיפים — ללא ספאם, ביטול בכל עת.</span>
+      </p>
+
+      <div data-fs-success class="fs-success-msg" id="fs-success">
+        <span class="i18n-en">🎉 You're in! We'll be in touch.</span>
+        <span class="i18n-he">🎉 נרשמת! ניצור איתך קשר.</span>
+      </div>
+
+      <form id="newsletter-form" class="newsletter-form">
+        <div>
+          <input
+            type="email"
+            name="email"
+            class="newsletter-input"
+            data-fs-field
+            required
+            autocomplete="email"
+            id="nl-email"
+          />
+          <div class="fs-error-msg" data-fs-error="email"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" data-fs-submit-btn>
+          <span class="i18n-en">Notify me</span>
+          <span class="i18n-he">עדכן אותי</span>
+        </button>
+      </form>
+      <div class="fs-error-msg" data-fs-error style="margin-top:.75rem"></div>
+    </div>
+  </section>
+
   <!-- ── CTA ── -->
   <section class="cta-section">
     <div class="container">
@@ -499,12 +571,25 @@
 </div><!-- /page -->
 
 <script>
+  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+  formspree('initForm', { formElement: '#newsletter-form', formId: 'xyklzqev' });
+
+  function updatePlaceholder() {
+    const lang = document.documentElement.lang;
+    const el = document.getElementById('nl-email');
+    if (el) el.placeholder = lang === 'he' ? 'כתובת האימייל שלך' : 'your@email.com';
+  }
+</script>
+<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
+
+<script>
   function setLang(lang) {
     document.documentElement.lang = lang;
     document.documentElement.dir  = lang === 'he' ? 'rtl' : 'ltr';
     document.getElementById('btn-en').classList.toggle('active', lang === 'en');
     document.getElementById('btn-he').classList.toggle('active', lang === 'he');
     localStorage.setItem('ich_lang', lang);
+    updatePlaceholder();
   }
 
   // Restore saved preference or detect browser language

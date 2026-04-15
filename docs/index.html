@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ichabod — PocketBase Site Generator</title>
+  <meta name="description" content="One command to bootstrap a PocketBase CMS with a marketing site, admin UI, and full SEO — zero config, zero deps."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Frank+Ruhl+Libre:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0c0c0f;
+      --surface: #141417;
+      --card:    #1a1a1f;
+      --border:  #2a2a33;
+      --text:    #e8e8f0;
+      --muted:   #6b6b80;
+      --primary: #a78bfa;
+      --accent:  #34d399;
+      --gold:    #fbbf24;
+      --danger:  #f87171;
+      --radius:  10px;
+      --font:    'Inter', system-ui, sans-serif;
+      --mono:    'JetBrains Mono', monospace;
+      --heb:     'Frank Ruhl Libre', serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.6; min-height: 100vh; }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { opacity: .8; }
+
+    /* ── Language switcher ── */
+    .lang-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(12,12,15,.88); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .65rem 2rem; gap: 1rem;
+    }
+    .lang-brand { font-weight: 700; font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: .5rem; }
+    .lang-brand span { color: var(--primary); }
+    .lang-btns { display: flex; gap: .5rem; }
+    .lang-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      border-radius: 6px; padding: .25rem .7rem; font-size: .8rem; font-weight: 600;
+      cursor: pointer; transition: all .15s; letter-spacing: .04em;
+    }
+    .lang-btn:hover, .lang-btn.active { background: var(--primary); border-color: var(--primary); color: #0c0c0f; }
+    .lang-btn.active { color: #0c0c0f; }
+
+    /* ── Layout ── */
+    .page { padding-top: 56px; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 7rem 1.5rem 5rem;
+      text-align: center;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(167,139,250,.12) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.25);
+      color: var(--primary); border-radius: 999px; padding: .3rem .9rem;
+      font-size: .8rem; font-weight: 600; letter-spacing: .06em; margin-bottom: 2rem;
+    }
+    .hero-badge::before { content: '◆'; }
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 800;
+      letter-spacing: -.03em; line-height: 1.1; margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #fff 30%, var(--primary));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--muted);
+      max-width: 560px; margin: 0 auto 2.5rem; line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .7rem 1.4rem; border-radius: var(--radius);
+      font-size: .95rem; font-weight: 600; cursor: pointer;
+      transition: transform .1s, opacity .1s; border: none;
+    }
+    .btn:hover { transform: translateY(-1px); opacity: .88; }
+    .btn-primary { background: var(--primary); color: #0c0c0f; }
+    .btn-ghost { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--border); }
+
+    /* ── Terminal ── */
+    .terminal-wrap { max-width: 560px; margin: 3.5rem auto 0; }
+    .terminal {
+      background: #0a0a0d; border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,.5);
+    }
+    .terminal-bar {
+      background: var(--surface); padding: .65rem 1rem; display: flex; gap: .4rem; align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; } .dot-y { background: #febc2e; } .dot-g { background: #28c840; }
+    .terminal-title { font-size: .75rem; color: var(--muted); margin-left: .5rem; font-family: var(--mono); }
+    .terminal-body { padding: 1.25rem 1.4rem; font-family: var(--mono); font-size: .88rem; line-height: 1.9; }
+    .t-muted { color: var(--muted); }
+    .t-cyan  { color: #67e8f9; }
+    .t-green { color: var(--accent); }
+    .t-purple{ color: var(--primary); }
+    .t-gold  { color: var(--gold); }
+    .t-prompt::before { content: '$ '; color: var(--muted); }
+
+    /* ── Section ── */
+    section { padding: 5rem 1.5rem; }
+    .section-label {
+      font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--primary); margin-bottom: .75rem;
+    }
+    h2 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800;
+      letter-spacing: -.025em; line-height: 1.2; margin-bottom: 1rem;
+    }
+    .section-desc { color: var(--muted); max-width: 520px; font-size: 1.05rem; line-height: 1.7; margin-bottom: 3rem; }
+
+    /* ── Features grid ── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;
+    }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.75rem; transition: border-color .2s, transform .15s;
+    }
+    .feature-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .feature-icon { font-size: 1.75rem; margin-bottom: 1rem; }
+    .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+    .feature-card p { color: var(--muted); font-size: .9rem; line-height: 1.65; }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 0; max-width: 640px; margin: 0 auto; }
+    .step-row { display: flex; gap: 1.5rem; position: relative; }
+    .step-row:not(:last-child) .step-line {
+      position: absolute; left: 19px; top: 44px; bottom: -16px; width: 1px;
+      background: linear-gradient(var(--border), transparent);
+    }
+    .step-num {
+      flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3);
+      color: var(--primary); font-weight: 700; font-size: .95rem;
+      display: flex; align-items: center; justify-content: center; margin-top: .1rem;
+    }
+    .step-body { padding-bottom: 2.5rem; }
+    .step-body h3 { font-weight: 700; margin-bottom: .35rem; }
+    .step-body p { color: var(--muted); font-size: .9rem; }
+    code { background: rgba(167,139,250,.12); color: var(--primary); border-radius: 5px; padding: .1em .4em; font-family: var(--mono); font-size: .85em; }
+
+    /* ── Comparison ── */
+    .compare-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .compare-table th {
+      text-align: left; padding: .75rem 1rem; font-size: .75rem; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td { padding: .7rem 1rem; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table .yes { color: var(--accent); font-weight: 700; }
+    .compare-table .no  { color: var(--muted); }
+    .compare-table .col-ich { color: var(--primary); font-weight: 700; }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(167,139,250,.08) 0%, transparent 70%);
+      border-top: 1px solid var(--border); text-align: center; padding: 6rem 1.5rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: .75rem; font-size: .82rem; color: var(--muted);
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    /* ── Hebrew overrides ── */
+    [lang="he"] h1, [lang="he"] h2, [lang="he"] h3,
+    [lang="he"] p, [lang="he"] .hero-sub, [lang="he"] .section-desc,
+    [lang="he"] .feature-card p, [lang="he"] .step-body p,
+    [lang="he"] .hero-badge, [lang="he"] .section-label,
+    [lang="he"] .compare-table td, [lang="he"] .compare-table th,
+    [lang="he"] .btn, [lang="he"] .step-body h3, [lang="he"] .feature-card h3 {
+      font-family: var(--heb);
+    }
+    [lang="he"] h1 { font-weight: 900; letter-spacing: 0; }
+    [lang="he"] { direction: rtl; text-align: right; }
+    [lang="he"] .lang-bar { flex-direction: row-reverse; }
+    [lang="he"] .terminal-wrap { direction: ltr; }
+    [lang="he"] .step-row { flex-direction: row-reverse; }
+    [lang="he"] .step-row:not(:last-child) .step-line { left: auto; right: 19px; }
+    [lang="he"] .features-grid { direction: rtl; }
+    [lang="he"] footer { flex-direction: row-reverse; }
+
+    /* ── i18n visibility ── */
+    .i18n-en, .i18n-he { display: none; }
+    [lang="en"] .i18n-en { display: contents; }
+    [lang="he"] .i18n-he { display: contents; }
+    span.i18n-en, span.i18n-he { display: none; }
+    [lang="en"] span.i18n-en { display: inline; }
+    [lang="he"] span.i18n-he { display: inline; }
+    div.i18n-en, div.i18n-he { display: none; }
+    [lang="en"] div.i18n-en { display: block; }
+    [lang="he"] div.i18n-he { display: block; }
+
+    @media (max-width: 640px) {
+      .lang-bar { padding: .5rem 1rem; }
+      .hero { padding: 5rem 1rem 3rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; align-items: center; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Language Bar ── -->
+<header class="lang-bar">
+  <div class="lang-brand"><span>◆</span> Ichabod</div>
+  <div class="lang-btns">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn"        id="btn-he" onclick="setLang('he')">עב</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="i18n-en">Open Source · Zero Config · Zero Deps</span>
+      <span class="i18n-he">קוד פתוח · ללא הגדרות · ללא תלויות</span>
+    </div>
+    <h1>
+      <span class="i18n-en">One command.<br/>Running CMS.</span>
+      <span class="i18n-he">פקודה אחת.<br/>CMS רץ.</span>
+    </h1>
+    <p class="hero-sub">
+      <span class="i18n-en">Ichabod bootstraps a full PocketBase CMS with a marketing site, schema-driven admin UI, SEO, and multilingual support — in under two minutes.</span>
+      <span class="i18n-he">Ichabod מקים CMS מלא על בסיס PocketBase, כולל אתר שיווקי, ממשק ניהול מונחה-סכמה, SEO ותמיכה רב-לשונית — בפחות משתי דקות.</span>
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="https://github.com/isaaacme/ichabod">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.54 2.87 8.39 6.84 9.75.5.09.68-.22.68-.49v-1.71c-2.78.62-3.37-1.37-3.37-1.37-.45-1.17-1.11-1.48-1.11-1.48-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.85.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.38 9.38 0 0 1 12 6.84c.85 0 1.7.12 2.5.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.82c0 .27.18.59.69.49A10.27 10.27 0 0 0 22 12.26C22 6.58 17.52 2 12 2z"/></svg>
+        <span class="i18n-en">View on GitHub</span>
+        <span class="i18n-he">GitHub</span>
+      </a>
+      <a class="btn btn-ghost" href="#how-it-works">
+        <span class="i18n-en">How it works →</span>
+        <span class="i18n-he">איך זה עובד ←</span>
+      </a>
+    </div>
+
+    <div class="terminal-wrap">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">zsh — ichabod init</span>
+        </div>
+        <div class="terminal-body">
+          <div class="t-prompt t-cyan">npx ichabod init</div>
+          <div class="t-muted">◆ Project Setup ────────────────</div>
+          <div>&nbsp;&nbsp;Project name <span class="t-muted">(my-site)</span>: <span class="t-gold">my-blog</span></div>
+          <div>&nbsp;&nbsp;Framework: <span class="t-purple">1) Static HTML</span>&nbsp;&nbsp;2) Astro&nbsp;&nbsp;3) Next.js</div>
+          <div>&nbsp;&nbsp;Site language <span class="t-muted">(en)</span>: <span class="t-gold">en</span></div>
+          <div class="t-muted">◆ Admin Credentials ─────────────</div>
+          <div>&nbsp;&nbsp;Admin email: <span class="t-gold">me@example.com</span></div>
+          <div>&nbsp;&nbsp;Admin password: <span class="t-muted">••••••••</span></div>
+          <br/>
+          <div><span class="t-green">✔</span>&nbsp; PocketBase downloaded</div>
+          <div><span class="t-green">✔</span>&nbsp; site_settings collection created</div>
+          <div><span class="t-green">✔</span>&nbsp; posts collection created</div>
+          <div><span class="t-green">✔</span>&nbsp; 2 starter posts seeded</div>
+          <br/>
+          <div class="t-muted">&nbsp;&nbsp;Site ·········  <span class="t-cyan">http://localhost:8090</span></div>
+          <div class="t-muted">&nbsp;&nbsp;Admin CMS ····  <span class="t-cyan">http://localhost:8090/admin/</span></div>
+          <div class="t-muted">&nbsp;&nbsp;PB Admin ·····  <span class="t-cyan">http://localhost:8090/_/</span></div>
+          <br/>
+          <div class="t-muted">&nbsp;&nbsp;Press <span class="t-text" style="color:var(--text)">Ctrl+C</span> to stop.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ── -->
+  <section id="features">
+    <div class="container">
+      <div class="section-label">
+        <span class="i18n-en">Features</span>
+        <span class="i18n-he">יכולות</span>
+      </div>
+      <h2>
+        <span class="i18n-en">Everything included.</span>
+        <span class="i18n-he">הכל כלול.</span>
+      </h2>
+      <p class="section-desc">
+        <span class="i18n-en">No boilerplate hunting, no stitching together services. Ichabod gives you a production-ready baseline in one shot.</span>
+        <span class="i18n-he">אין צורך לחפש boilerplate או לחבר שירותים שונים. Ichabod מספק בסיס מוכן לייצור בפעולה אחת.</span>
+      </p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3><span class="i18n-en">PocketBase Backend</span><span class="i18n-he">Backend עם PocketBase</span></h3>
+          <p><span class="i18n-en">Self-contained SQLite database, REST API, file storage, and auth — downloaded and started automatically.</span><span class="i18n-he">מסד נתונים SQLite עצמאי, REST API, אחסון קבצים והזדהות — מורדים ומופעלים אוטומטית.</span></p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎛️</div>
+          <h3><span class="i18n-en">Alpine.js Admin UI</span><span class="i18n-he">ממשק ניהול עם Alpine.js</span></h3>
+          <p><span class="i18n-en">Schema-driven CMS admin at <code>/admin/</code> — full CRUD, rich editor, file uploads, relation fields. No build step.</span><span class="i18n-he">ממשק ניהול מונחה-סכמה ב-<code dir="ltr">/admin/</code> — CRUD מלא, עורך עשיר, העלאת קבצים. ללא שלב בנייה.</span></p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <h3><span class="i18n-en">SEO & i18n Built-in</span><span class="i18n-he">SEO ורב-לשוניות מובנים</span></h3>
+          <p><span class="i18n-en">Global site settings collection, per-record SEO title, description, canonical URL, noindex. UI in EN/FR/ES, content locale tabs.</span><span class="i18n-he">אוסף הגדרות אתר גלובלי, SEO לכל רשומה — כותרת, תיאור, URL קנוני, noindex. ממשק ב-EN/FR/ES, לשוניות תוכן.</span></p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏗️</div>
+          <h3><span class="i18n-en">3 Framework Choices</span><span class="i18n-he">3 אפשרויות Framework</span></h3>
+          <p><span class="i18n-en">Pick Static HTML (zero build), Astro, or Next.js at init time. The admin UI is always at <code>/admin/</code> regardless.</span><span class="i18n-he">בחר Static HTML (ללא בנייה), Astro, או Next.js בזמן הקמה. ממשק הניהול תמיד זמין ב-<code dir="ltr">/admin/</code>.</span></p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3><span class="i18n-en">Theme Control</span><span class="i18n-he">שליטה בעיצוב</span></h3>
+          <p><span class="i18n-en">Live CSS variable editor in the admin settings panel. Save themes to localStorage, reset to defaults instantly.</span><span class="i18n-he">עורך CSS חי בממשק ההגדרות. שמירת ערכות נושא ב-localStorage, איפוס מיידי לברירות מחדל.</span></p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3><span class="i18n-en">LLM-Ready</span><span class="i18n-he">מוכן ל-LLM</span></h3>
+          <p><span class="i18n-en">Plain files, zero magic. Paste any source file into an AI assistant and extend freely. Starter posts guide you through the workflow.</span><span class="i18n-he">קבצים פשוטים, ללא קסמים. הדבק כל קובץ מקור ל-AI ותרחיב בחופשיות. פוסטי הפתיחה מנחים אותך.</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── How it works ── -->
+  <section id="how-it-works" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">
+        <span class="i18n-en">How it works</span>
+        <span class="i18n-he">איך זה עובד</span>
+      </div>
+      <h2>
+        <span class="i18n-en">Up in four steps.</span>
+        <span class="i18n-he">ארבעה שלבים בלבד.</span>
+      </h2>
+      <p class="section-desc">
+        <span class="i18n-en">No manual installs, no config files to write, no ports to configure.</span>
+        <span class="i18n-he">ללא התקנות ידניות, ללא קבצי הגדרות לכתיבה, ללא הגדרת פורטים.</span>
+      </p>
+      <div class="steps">
+        <div class="step-row">
+          <div class="step-num">1<div class="step-line"></div></div>
+          <div class="step-body">
+            <h3><span class="i18n-en">Run <code>npx ichabod init</code></span><span class="i18n-he">הרץ <code>npx ichabod init</code></span></h3>
+            <p><span class="i18n-en">An interactive wizard asks for project name, framework, site language, and admin credentials.</span><span class="i18n-he">אשף אינטראקטיבי שואל שם פרויקט, framework, שפת אתר ופרטי מנהל.</span></p>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">2<div class="step-line"></div></div>
+          <div class="step-body">
+            <h3><span class="i18n-en">PocketBase is downloaded & started</span><span class="i18n-he">PocketBase מורד ומופעל</span></h3>
+            <p><span class="i18n-en">The correct binary for your OS is fetched from GitHub releases, extracted, and launched — no manual install.</span><span class="i18n-he">הקובץ המתאים למערכת ההפעלה שלך מורד מ-GitHub Releases, מחולץ ומופעל — ללא התקנה ידנית.</span></p>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">3<div class="step-line"></div></div>
+          <div class="step-body">
+            <h3><span class="i18n-en">Schema & content created automatically</span><span class="i18n-he">סכמה ותוכן נוצרים אוטומטית</span></h3>
+            <p><span class="i18n-en"><code>site_settings</code> and <code>posts</code> collections are created with full SEO fields. Two starter posts are seeded.</span><span class="i18n-he">אוספי <code>site_settings</code> ו-<code>posts</code> נוצרים עם שדות SEO מלאים. שני פוסטי התחלה נזרעים.</span></p>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3><span class="i18n-en">Everything stays running</span><span class="i18n-he">הכל נשאר פעיל</span></h3>
+            <p><span class="i18n-en">PocketBase and your framework dev server stay alive after init. Use <code>npx ichabod start</code> next time.</span><span class="i18n-he">PocketBase ושרת הפיתוח של ה-framework נשארים פעילים לאחר ההקמה. בפעם הבאה השתמש ב-<code>npx ichabod start</code>.</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Comparison ── -->
+  <section id="compare">
+    <div class="container">
+      <div class="section-label">
+        <span class="i18n-en">Comparison</span>
+        <span class="i18n-he">השוואה</span>
+      </div>
+      <h2>
+        <span class="i18n-en">Why not just use…</span>
+        <span class="i18n-he">למה לא פשוט להשתמש ב…</span>
+      </h2>
+      <p class="section-desc">
+        <span class="i18n-en">Other tools require accounts, paid plans, or heavy setup. Ichabod is local-first and yours to own.</span>
+        <span class="i18n-he">כלים אחרים דורשים חשבונות, תוכניות בתשלום, או הגדרה כבדה. Ichabod הוא local-first ושייך לך לחלוטין.</span>
+      </p>
+      <div style="overflow-x:auto; border: 1px solid var(--border); border-radius: var(--radius);">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th><span class="i18n-en">Feature</span><span class="i18n-he">יכולת</span></th>
+              <th class="col-ich">Ichabod</th>
+              <th>WordPress</th>
+              <th>Contentful</th>
+              <th>Strapi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="i18n-en">One-command setup</span><span class="i18n-he">הקמה בפקודה אחת</span></td>
+              <td class="yes col-ich">✔</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td>
+            </tr>
+            <tr>
+              <td><span class="i18n-en">No account required</span><span class="i18n-he">ללא חשבון נדרש</span></td>
+              <td class="yes col-ich">✔</td><td class="yes">✔</td><td class="no">✗</td><td class="yes">✔</td>
+            </tr>
+            <tr>
+              <td><span class="i18n-en">Zero external deps</span><span class="i18n-he">ללא תלויות חיצוניות</span></td>
+              <td class="yes col-ich">✔</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td>
+            </tr>
+            <tr>
+              <td><span class="i18n-en">Admin UI included</span><span class="i18n-he">ממשק ניהול כלול</span></td>
+              <td class="yes col-ich">✔</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td>
+            </tr>
+            <tr>
+              <td><span class="i18n-en">Free forever</span><span class="i18n-he">חינמי לתמיד</span></td>
+              <td class="yes col-ich">✔</td><td class="yes">✔</td><td class="no">✗</td><td class="yes">✔</td>
+            </tr>
+            <tr>
+              <td><span class="i18n-en">Built-in SEO fields</span><span class="i18n-he">שדות SEO מובנים</span></td>
+              <td class="yes col-ich">✔</td><td class="no">plugin</td><td class="no">✗</td><td class="no">plugin</td>
+            </tr>
+            <tr>
+              <td><span class="i18n-en">Framework choice</span><span class="i18n-he">בחירת Framework</span></td>
+              <td class="yes col-ich">✔</td><td class="no">✗</td><td class="yes">✔</td><td class="yes">✔</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="section-label" style="text-align:center">
+        <span class="i18n-en">Get started</span>
+        <span class="i18n-he">צא לדרך</span>
+      </div>
+      <h2 style="text-align:center; max-width:600px; margin:0 auto 1rem;">
+        <span class="i18n-en">Your CMS, two minutes away.</span>
+        <span class="i18n-he">ה-CMS שלך, במרחק שתי דקות.</span>
+      </h2>
+      <p class="section-desc" style="text-align:center; margin:0 auto 2.5rem;">
+        <span class="i18n-en">Run one command. No account. No credit card. No cloud. Just a running CMS you own completely.</span>
+        <span class="i18n-he">הרץ פקודה אחת. ללא חשבון. ללא כרטיס אשראי. ללא ענן. רק CMS רץ ושייך לך לחלוטין.</span>
+      </p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a class="btn btn-primary" href="https://github.com/isaaacme/ichabod">
+          <span class="i18n-en">⭐ Star on GitHub</span>
+          <span class="i18n-he">⭐ כוכב ב-GitHub</span>
+        </a>
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:.7rem 1.4rem; font-family:var(--mono); font-size:.9rem; color:var(--primary);">
+          npx ichabod init
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div>
+      <span class="i18n-en">Built with ♥ using <a href="https://pocketbase.io" target="_blank">PocketBase</a> + <a href="https://alpinejs.dev" target="_blank">Alpine.js</a></span>
+      <span class="i18n-he">נבנה באהבה עם <a href="https://pocketbase.io" target="_blank">PocketBase</a> + <a href="https://alpinejs.dev" target="_blank">Alpine.js</a></span>
+    </div>
+    <div style="display:flex; gap:1.25rem;">
+      <a href="https://github.com/isaaacme/ichabod" target="_blank">GitHub</a>
+      <a href="https://github.com/isaaacme/ichabod/issues" target="_blank">
+        <span class="i18n-en">Issues</span>
+        <span class="i18n-he">בעיות</span>
+      </a>
+      <a href="https://github.com/isaaacme/ichabod/blob/main/README.md" target="_blank">
+        <span class="i18n-en">Docs</span>
+        <span class="i18n-he">תיעוד</span>
+      </a>
+    </div>
+  </footer>
+
+</div><!-- /page -->
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.documentElement.dir  = lang === 'he' ? 'rtl' : 'ltr';
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    document.getElementById('btn-he').classList.toggle('active', lang === 'he');
+    localStorage.setItem('ich_lang', lang);
+  }
+
+  // Restore saved preference or detect browser language
+  (function () {
+    const saved = localStorage.getItem('ich_lang');
+    const browser = navigator.language || '';
+    const lang = saved || (browser.startsWith('he') ? 'he' : 'en');
+    setLang(lang);
+  })();
+</script>
+</body>
+</html>

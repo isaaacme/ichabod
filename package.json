@@ -6,6 +6,9 @@
   "bin": {
     "ichabod": "bin/ichabod.js"
   },
+  "scripts": {
+    "test": "node --test __tests__/*.test.js"
+  },
   "files": [
     "bin/",
     "lib/"
